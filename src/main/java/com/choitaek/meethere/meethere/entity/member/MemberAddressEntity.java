@@ -1,5 +1,6 @@
 package com.choitaek.meethere.meethere.entity.member;
 
+import com.choitaek.meethere.meethere.dto.AddressObjectDto;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -38,4 +39,12 @@ public class MemberAddressEntity {
     @OneToOne(cascade = CascadeType.MERGE, optional = false)
     @JoinColumn(name = "member_uuid", nullable = false)
     private MemberEntity memberEntity;
+
+    public void createMemberAddress(AddressObjectDto addressObjectDto) {
+        this.addressName = addressObjectDto.getAddressName();
+        this.placeName = addressObjectDto.getPlaceName();
+        this.roadName = addressObjectDto.getRoadName();
+        this.lat = addressObjectDto.getLat();
+        this.lon = addressObjectDto.getLon();
+    }
 }
