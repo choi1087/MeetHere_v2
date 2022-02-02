@@ -1,5 +1,7 @@
 package com.choitaek.meethere.meethere.entity.schedule;
 
+import com.choitaek.meethere.meethere.dto.AddressObjectDto;
+import com.choitaek.meethere.meethere.dto.request.schedule.ScheduleAddressSaveReqDto;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -41,4 +43,13 @@ public class ScheduleAddressEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_uuid", nullable = false)
     private ScheduleEntity scheduleEntity;
+
+    public void createScheduleAddress(ScheduleAddressSaveReqDto scheduleAddressSaveReqDto) {
+        this.userName = scheduleAddressSaveReqDto.getUserName();
+        this.addressName = scheduleAddressSaveReqDto.getAddressName();
+        this.placeName = scheduleAddressSaveReqDto.getPlaceName();
+        this.roadName = scheduleAddressSaveReqDto.getRoadName();
+        this.lat = scheduleAddressSaveReqDto.getLat();
+        this.lon = scheduleAddressSaveReqDto.getLon();
+    }
 }

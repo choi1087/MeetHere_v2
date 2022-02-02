@@ -1,4 +1,4 @@
-package com.choitaek.meethere.meethere.dto.share;
+package com.choitaek.meethere.meethere.dto.request.schedule;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -6,16 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShareObjectResDto {
+public class ScheduleAddressSaveReqDto {
 
-    @Schema(description = "공유 uuid")
-    private UUID uuid;
+    @Schema(description = "회원 이름")
+    private String userName;
 
     @Schema(description = "주소 이름")
     private String addressName;

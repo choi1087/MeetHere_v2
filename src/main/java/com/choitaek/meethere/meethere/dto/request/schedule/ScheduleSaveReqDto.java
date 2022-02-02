@@ -17,7 +17,7 @@ import java.util.UUID;
 public class ScheduleSaveReqDto {
 
     @Schema(description = "회원 uuid")
-    private UUID uuid;
+    private UUID memberUuid;
 
     @Schema(description = "스케쥴 이름")
     private String name;
@@ -29,5 +29,5 @@ public class ScheduleSaveReqDto {
     private AddressObjectDto destinationAddress;
 
     @Schema(description = "출발지점 주소 정보 리스트")
-    private List<AddressObjectDto> startAddressList;
+    private List<ScheduleAddressSaveReqDto> startAddressList;
 }

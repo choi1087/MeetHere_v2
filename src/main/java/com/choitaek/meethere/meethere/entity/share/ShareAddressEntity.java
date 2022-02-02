@@ -1,5 +1,6 @@
 package com.choitaek.meethere.meethere.entity.share;
 
+import com.choitaek.meethere.meethere.dto.share.ShareObjectDto;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -41,4 +42,13 @@ public class ShareAddressEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "share_uuid", nullable = false)
     private ShareEntity shareEntity;
+
+    public void createShareAddress(ShareObjectDto shareObjectDto) {
+        this.userName = shareObjectDto.getUserName();
+        this.addressName = shareObjectDto.getAddressName();
+        this.placeName = shareObjectDto.getPlaceName();
+        this.roadName = shareObjectDto.getRoadName();
+        this.lat = shareObjectDto.getLat();
+        this.lon = shareObjectDto.getLon();
+    }
 }

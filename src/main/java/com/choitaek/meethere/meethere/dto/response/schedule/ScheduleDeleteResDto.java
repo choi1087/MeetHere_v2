@@ -1,4 +1,4 @@
-package com.choitaek.meethere.meethere.dto.response.share;
+package com.choitaek.meethere.meethere.dto.response.schedule;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShareSearchResDto {
+public class ScheduleDeleteResDto {
 
     @Schema(description = "응답 메시지")
     private String message;

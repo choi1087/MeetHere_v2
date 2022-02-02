@@ -9,5 +9,7 @@ import java.util.UUID;
 public interface FriendRepo extends JpaRepository<FriendEntity, UUID> {
     Page<FriendEntity> findByMemberUuid(UUID uuid);
 
+    FriendEntity findOneByUuid(UUID uuid);
+
     FriendEntity findOneByEmail(String email);
 }

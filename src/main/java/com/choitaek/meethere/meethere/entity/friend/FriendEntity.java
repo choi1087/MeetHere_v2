@@ -1,5 +1,6 @@
 package com.choitaek.meethere.meethere.entity.friend;
 
+import com.choitaek.meethere.meethere.dto.request.friend.FriendSaveReqDto;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import com.choitaek.meethere.meethere.entity.TimeEntity;
 import lombok.*;
@@ -34,4 +35,11 @@ public class FriendEntity extends TimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_uuid", nullable = false)
     private MemberEntity memberEntity;
+
+    public void createFriend(MemberEntity friend, MemberEntity member) {
+        this.name = friend.getName();
+        this.email = friend.getEmail();
+        this.phone = friend.getPhone();
+        this.memberEntity = member;
+    }
 }
