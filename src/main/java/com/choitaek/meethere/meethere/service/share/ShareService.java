@@ -14,6 +14,7 @@ import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +73,8 @@ public class ShareService {
     // 공유코드에 저장된 출발주소 리스트
     @Transactional(readOnly = true)
     public ResponseSuccessDto<List<ShareSearchStartDto>> searchShareStartList(UUID shareUuid) {
-        Page<ShareAddressEntity> startAddressPage = shareAddressRepo.findByShareUuid(shareUuid);
+        ShareEntity share = shareRepo.findOneByUuid(shareUuid);
+        Page<ShareAddressEntity> startAddressPage = shareAddressRepo.findByShareEntity(share, PageRequest.of(0, 20));
         Page<ShareSearchStartDto> toMap = startAddressPage.map(s -> new ShareSearchStartDto(
                         s.getUserName(), s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLat()
                 )

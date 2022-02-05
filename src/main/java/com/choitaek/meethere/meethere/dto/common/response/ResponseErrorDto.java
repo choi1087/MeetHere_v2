@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Schema(description = "API 에러 응답")
 @Getter
@@ -19,7 +20,7 @@ public class ResponseErrorDto<T> extends ResponseCommonDto {
     private T error;
 
     @Builder
-    public ResponseErrorDto(LocalDateTime timeStamp, int code, String status, String path, T error) {
+    public ResponseErrorDto(ZonedDateTime timeStamp, int code, String status, String path, T error) {
         super(timeStamp, code, status);
         this.path = path;
         this.error = error;

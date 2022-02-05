@@ -14,11 +14,22 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: 'create-drop'
     properties:
       hibernate:
         format_sql: true
       show-sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: grchoi1087@gmail.com
+    password: dfrrkhgyqjemjtmq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   output:
     ansi:

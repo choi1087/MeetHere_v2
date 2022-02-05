@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Schema(description = "API 응답")
 @Getter
@@ -18,7 +19,7 @@ public class ResponseCommonDto {
 
     @Schema(description = "응답 시각, UTC 0")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-    private LocalDateTime timeStamp;
+    private ZonedDateTime timeStamp;
     @Schema(description = "응답 코드")
     private int code;
     @Schema(description = "응답 상태")

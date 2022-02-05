@@ -15,6 +15,6 @@ public class MemberVerifyReqDto {
     @Schema(description = "인증 메일")
     private String email;
 
-    @Schema(description = "인증 코드")
-    private String code;
+    @Schema(description = "인증 번호")
+    private int authNum;
 }

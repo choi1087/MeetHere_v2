@@ -40,11 +40,12 @@ public class MemberAddressEntity {
     @JoinColumn(name = "member_uuid", nullable = false)
     private MemberEntity memberEntity;
 
-    public void createMemberAddress(AddressObjectDto addressObjectDto) {
+    public void createMemberAddress(AddressObjectDto addressObjectDto, MemberEntity memberEntity) {
         this.addressName = addressObjectDto.getAddressName();
         this.placeName = addressObjectDto.getPlaceName();
         this.roadName = addressObjectDto.getRoadName();
         this.lat = addressObjectDto.getLat();
         this.lon = addressObjectDto.getLon();
+        this.memberEntity = memberEntity;
     }
 }

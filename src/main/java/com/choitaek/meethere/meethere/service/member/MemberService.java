@@ -2,12 +2,11 @@ package com.choitaek.meethere.meethere.service.member;
 
 import com.choitaek.meethere.meethere.dto.AddressObjectDto;
 import com.choitaek.meethere.meethere.dto.common.response.ResponseSuccessDto;
+import com.choitaek.meethere.meethere.dto.request.member.MemberLoginReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberSaveReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberUpdateReqDto;
-import com.choitaek.meethere.meethere.dto.response.member.MemberDeleteResDto;
-import com.choitaek.meethere.meethere.dto.response.member.MemberSaveResDto;
-import com.choitaek.meethere.meethere.dto.response.member.MemberSearchResDto;
-import com.choitaek.meethere.meethere.dto.response.member.MemberUpdateResDto;
+import com.choitaek.meethere.meethere.dto.request.member.MemberVerifyReqDto;
+import com.choitaek.meethere.meethere.dto.response.member.*;
 import com.choitaek.meethere.meethere.entity.member.MemberAddressEntity;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberAddressRepo;
@@ -34,7 +33,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class MemberService implements UserDetailsService {
+public class MemberService {
 
     private final ResponseUtil responseUtil;
     private final PasswordEncoder passwordEncoder;
@@ -50,7 +49,7 @@ public class MemberService implements UserDetailsService {
 
         // 중복 회원 검증
         if (!validateDuplicateMember(memberSaveReqDto)) {
-            log.debug("회원 가입 실패 (중복회원)");
+            System.out.println("회원 가입 실패 (중복회원)");
             return responseUtil.successResponse(new MemberSaveResDto("회원가입 실패"));
         }
 
@@ -63,10 +62,10 @@ public class MemberService implements UserDetailsService {
 
         // 회원 주소 정보
         MemberAddressEntity memberAddressEntity = new MemberAddressEntity();
-        memberAddressEntity.createMemberAddress(memberSaveReqDto.getAddressObjectDto());
+        memberAddressEntity.createMemberAddress(memberSaveReqDto.getAddressObjectDto(), memberEntity);
 
-        memberAddressRepo.save(memberAddressEntity);
         memberRepo.save(memberEntity);
+        memberAddressRepo.save(memberAddressEntity);
 
         MemberSaveResDto memberSaveResDto = new MemberSaveResDto("인증번호 발송");
         ResponseSuccessDto<MemberSaveResDto> res = responseUtil.successResponse(memberSaveResDto);
@@ -74,18 +73,27 @@ public class MemberService implements UserDetailsService {
     }
 
     // 회원 활성화 (인증 성공시)
-    public Boolean activateMember(String email, int authNum) {
-        MemberEntity member = memberRepo.findOneByEmail(email);
-        if (member.getAuthNum() == authNum) {
-            member.setIsActive(true);
-            return true;
+    public ResponseSuccessDto<MemberVerifyResDto> activateMember(MemberVerifyReqDto memberVerifyReqDto) {
+        ResponseSuccessDto<MemberVerifyResDto> res;
+        Optional<MemberEntity> byEmail = memberRepo.findByEmail(memberVerifyReqDto.getEmail());
+        MemberEntity member = byEmail.get();
+
+        if (byEmail.isEmpty()) {
+            return responseUtil.successResponse(new MemberVerifyResDto("해당 회원이 존재하지 않습니다."));
         }
-        return false;
+
+        if (member.getAuthNum() == memberVerifyReqDto.getAuthNum()) {
+            member.setIsActive(true);
+            res = responseUtil.successResponse(new MemberVerifyResDto("인증 성공"));
+            return res;
+        }
+        res = responseUtil.successResponse(new MemberVerifyResDto("인증 실패"));
+        return res;
     }
 
     // 로그인
-    public ResponseSuccessDto<String> login(String email, String pw) {
-        MemberEntity member = memberRepo.findOneByEmail(email);
+    public ResponseSuccessDto<MemberLoginResDto> login(MemberLoginReqDto memberLoginReqDto) {
+        MemberEntity member = memberRepo.findOneByEmail(memberLoginReqDto.getEmail());
         if (member == null) {
             try {
                 throw new Exception("해당 회원이 존재하지 않습니다");
@@ -94,14 +102,17 @@ public class MemberService implements UserDetailsService {
             }
         }
 
-        if (!passwordEncoder.matches(pw, member.getPw())) {
-            try {
-                throw new Exception("비밀번호가 일치하지 않습니다");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        System.out.println("입력 비밀번호 = " + memberLoginReqDto.getPw());
+        System.out.println("멤버 비밀번호 = " + member.getPw());
+        /*if (!passwordEncoder.matches(memberLoginReqDto.getPw(), member.getPw())) {
+
+        }*/
+        if (!memberLoginReqDto.getPw().equals(member.getPw())) {
+            return responseUtil.successResponse(new MemberLoginResDto("로그인 실패"));
         }
-        ResponseSuccessDto<String> res = responseUtil.successResponse("로그인 성공");
+
+        MemberLoginResDto memberLoginResDto = new MemberLoginResDto("로그인 성공");
+        ResponseSuccessDto<MemberLoginResDto> res = responseUtil.successResponse(memberLoginResDto);
         return res;
     }
 
@@ -132,9 +143,10 @@ public class MemberService implements UserDetailsService {
         return res;
     }
     
-    // 회원 조회 (이메일, 이름, 휴대전화)
-    public ResponseSuccessDto<MemberSearchResDto> findMemberByNameAndPhone(String email, String name, String phone) {
-        MemberEntity member = memberRepo.findOneByEmail(email);
+    // 회원 이메일 찾기 (이름, 휴대전화)
+    @Transactional(readOnly = true)
+    public ResponseSuccessDto<MemberFindEmailResDto> findMemberEmail(String name, String phone) {
+        MemberEntity member = memberRepo.findOneByNameAndPhone(name, phone);
         if (member == null) {
             try {
                 throw new Exception("해당 회원이 존재하지 않습니다.");
@@ -142,29 +154,34 @@ public class MemberService implements UserDetailsService {
                 e.printStackTrace();
             }
         }
-
-        if (!member.getName().equals(name)) {
-            try {
-                throw new Exception("이름이 일치하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (!member.getPhone().equals(phone)) {
-            try {
-                throw new Exception("휴대전화가 일치하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        MemberSearchResDto findMember = getMemberSearchResDto(member);
-        ResponseSuccessDto<MemberSearchResDto> res = responseUtil.successResponse(findMember);
+        MemberFindEmailResDto memberFindEmailResDto = new MemberFindEmailResDto("회원 조회 성공", member.getEmail());
+        ResponseSuccessDto<MemberFindEmailResDto> res = responseUtil.successResponse(memberFindEmailResDto);
         return res;
     }
-    
+
+    // 회원 비밀번호 찾기 (이메일, 이름, 휴대전화)
+    @Transactional(readOnly = true)
+    public ResponseSuccessDto<MemberFindPwResDto> findMemberPw(String email, String name, String phone) {
+        MemberEntity findMember = memberRepo.findOneByEmailAndNameAndPhone(email, name, phone);
+        if (findMember == null) {
+            try {
+                throw new Exception("해당 회원이 존재하지 않습니다.");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        MemberFindPwResDto memberFindPwResDto = new MemberFindPwResDto(
+                "회원 조회 성공", "비밀번호가 임시 비밀번호로 변경되었습니다. 임시 비밀번호는 해당 계정의 이메일로 발송하였습니다."
+        );
+        ResponseSuccessDto<MemberFindPwResDto> res = responseUtil.successResponse(memberFindPwResDto);
+        return res;
+    }
+
     // 회원 정보 수정
     public ResponseSuccessDto<MemberUpdateResDto> updateMember(MemberUpdateReqDto memberUpdateReqDto) {
+        System.out.println("1차비번 = " + memberUpdateReqDto.getPw());
+        System.out.println("2차비번 = " + memberUpdateReqDto.getCheckedPw());
         if (!memberUpdateReqDto.getPw().equals(memberUpdateReqDto.getCheckedPw())) {
             try {
                 throw new Exception("비밀번호가 일치하지 않습니다.");
@@ -184,7 +201,7 @@ public class MemberService implements UserDetailsService {
     // 회원 탈퇴
     public ResponseSuccessDto<MemberDeleteResDto> deleteMember(UUID uuid) {
         MemberEntity member = memberRepo.findOneByUuid(uuid);
-        MemberAddressEntity memberAddress = memberAddressRepo.findOneByMemberUuid(member.getUuid());
+        MemberAddressEntity memberAddress = memberAddressRepo.findOneByMemberEntity(member);
         memberAddressRepo.delete(memberAddress);
         memberRepo.delete(member);
 
@@ -194,26 +211,30 @@ public class MemberService implements UserDetailsService {
     }
     
     // 중복 회원 확인
-    private boolean validateDuplicateMember(MemberSaveReqDto memberSaveReqDto) {
+    private Boolean validateDuplicateMember(MemberSaveReqDto memberSaveReqDto) {
         // 중복 이메일 확인
-        MemberEntity member = memberRepo.findOneByEmail(memberSaveReqDto.getEmail());
-        if (member != null) {
+        Optional<MemberEntity> byEmail = memberRepo.findByEmail(memberSaveReqDto.getEmail());
+        if (byEmail.isEmpty()) {
+            System.out.println("회원 가능 이메일");
+            return true;
+        }
 
-            // 인증 절차가 안된 이메일이라면, 이전 데이터 삭제
-            if (!member.getIsActive()) {
-                log.debug("미인증 메일 데이터 삭제");
-                memberRepo.delete(member);
-            } else {
-                log.debug("이미 존재하는 회원입니다.");
-                return false;
-            }
+        MemberEntity member = byEmail.get();
+
+        // 인증 절차가 안된 이메일이라면, 이전 데이터 삭제
+        if (!member.getIsActive()) {
+            System.out.println("미인증 메일 데이터 삭제");
+            memberRepo.delete(member);
+        } else {
+            System.out.println("이미 존재하는 회원입니다.");
+            return false;
         }
 
         // 중복 이름, 번호
-        Page<MemberEntity> findMember = memberRepo.findByName(memberSaveReqDto.getName());
+        Page<MemberEntity> findMember = memberRepo.findByName(memberSaveReqDto.getName(), PageRequest.of(0, 20));
         for (MemberEntity memberEntity : findMember) {
             if (memberEntity.getPhone().equals(memberSaveReqDto.getPhone())) {
-                log.debug("이미 존재하는 회원입니다");
+                System.out.println("이미 존재하는 회원입니다");
                 return false;
             }
         }
@@ -224,7 +245,7 @@ public class MemberService implements UserDetailsService {
     private MemberSearchResDto getMemberSearchResDto(MemberEntity member) {
         MemberSearchResDto memberSearchResDto = new MemberSearchResDto(
                 member.getUuid(), member.getEmail(), member.getPw(), member.getName(), member.getPhone(),
-                changeMemberEntityToDto(memberAddressRepo.findOneByMemberUuid(member.getUuid()))
+                changeMemberEntityToDto(memberAddressRepo.findOneByMemberEntity(member))
         );
         return memberSearchResDto;
     }
@@ -241,20 +262,20 @@ public class MemberService implements UserDetailsService {
         return addressObjectDto;
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        MemberEntity member = memberRepo.findOneByEmail(email);
-        if (member == null) {
-            try {
-                throw new Exception("해당 회원이 존재하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
-        grantedAuthorities.add(new SimpleGrantedAuthority("TRUE"));
-
-        return new User(member.getEmail(), member.getPw(), grantedAuthorities);
-    }
+//    @Override
+//    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+//        MemberEntity member = memberRepo.findOneByEmail(email);
+//        if (member == null) {
+//            try {
+//                throw new Exception("해당 회원이 존재하지 않습니다.");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//        Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
+//        grantedAuthorities.add(new SimpleGrantedAuthority("TRUE"));
+//
+//        return new User(member.getEmail(), member.getPw(), grantedAuthorities);
+//    }
 }

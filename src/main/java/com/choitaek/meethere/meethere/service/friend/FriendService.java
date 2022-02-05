@@ -16,6 +16,7 @@ import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +64,7 @@ public class FriendService {
         }
 
         // 중복 친구추가 확인
-        List<FriendEntity> friendList = friendRepo.findByMemberUuid(member.getUuid()).getContent();
+        List<FriendEntity> friendList = friendRepo.findByMemberEntity(member, PageRequest.of(0, 20)).getContent();
         for (FriendEntity friend : friendList) {
             if (friend.getEmail().equals(friendMember.getEmail())) {
                 try {
@@ -86,7 +87,8 @@ public class FriendService {
     // 친구 목록
     @Transactional(readOnly = true)
     public ResponseSuccessDto<FriendSearchResDto> searchFriend(UUID memberUuid) {
-        Page<FriendEntity> friendPage = friendRepo.findByMemberUuid(memberUuid);
+        MemberEntity member = memberRepo.findOneByUuid(memberUuid);
+        Page<FriendEntity> friendPage = friendRepo.findByMemberEntity(member, PageRequest.of(0, 20));
         FriendSearchResDto friendSearchResDto = new FriendSearchResDto(
                 "친구 목록 조회 성공", changeEntityToObject(friendPage.getContent())
         );

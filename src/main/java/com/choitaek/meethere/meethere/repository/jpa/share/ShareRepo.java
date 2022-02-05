@@ -11,4 +11,6 @@ public interface ShareRepo extends JpaRepository<ShareEntity, UUID> {
     Page<ShareEntity> findAll(Pageable pageable);
 
     ShareEntity findOneByCode(String code);
+
+    ShareEntity findOneByUuid(UUID uuid);
 }

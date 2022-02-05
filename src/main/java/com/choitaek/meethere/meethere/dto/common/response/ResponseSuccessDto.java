@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 
 @Schema(description = "API 응답")
@@ -17,7 +18,7 @@ public class ResponseSuccessDto<T> extends ResponseCommonDto {
     private T data;
 
     @Builder
-    public ResponseSuccessDto(LocalDateTime timeStamp, int code, String status, T data) {
+    public ResponseSuccessDto(ZonedDateTime timeStamp, int code, String status, T data) {
         super(timeStamp, code, status);
         this.data = data;
     }

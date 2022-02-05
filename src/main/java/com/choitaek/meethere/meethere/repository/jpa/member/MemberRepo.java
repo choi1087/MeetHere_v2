@@ -4,8 +4,10 @@ import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface MemberRepo extends JpaRepository<MemberEntity, UUID> {
@@ -15,5 +17,11 @@ public interface MemberRepo extends JpaRepository<MemberEntity, UUID> {
 
     MemberEntity findOneByEmail(String email);
 
-    Page<MemberEntity> findByName(String name);
+    Page<MemberEntity> findByName(String name, Pageable pageable);
+
+    MemberEntity findOneByNameAndPhone(String name, String phone);
+
+    MemberEntity findOneByEmailAndNameAndPhone(String email, String name, String phone);
+
+    Optional<MemberEntity> findByEmail(String email);
 }

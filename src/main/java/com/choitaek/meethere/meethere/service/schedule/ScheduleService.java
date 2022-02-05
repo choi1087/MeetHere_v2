@@ -17,6 +17,7 @@ import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +59,8 @@ public class ScheduleService {
 
     // 회원의 스케쥴 목록
     public ResponseSuccessDto<ScheduleSearchResDto> searchScheduleList(UUID memberUuid) {
-        Page<ScheduleEntity> schedulePage = scheduleRepo.findByMemberUuid(memberUuid);
+        MemberEntity member = memberRepo.findOneByUuid(memberUuid);
+        Page<ScheduleEntity> schedulePage = scheduleRepo.findByMemberEntity(member, PageRequest.of(0, 20));
         Page<ScheduleObjectResDto> scheduleObjectResDtoMap = schedulePage.map(
                 s -> new ScheduleObjectResDto(s.getUuid(), s.getName(), s.getDate(),
                         s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLon())
@@ -70,7 +72,8 @@ public class ScheduleService {
 
     // 스케쥴 - 출발 주소 리스트
     public ResponseSuccessDto<ScheduleAddressSearchResDto> searchStartAddressList(UUID scheduleUuid) {
-        Page<ScheduleAddressEntity> scheduleAddressPage = scheduleAddressRepo.findByScheduleUuid(scheduleUuid);
+        ScheduleEntity schedule = scheduleRepo.findOneByUuid(scheduleUuid);
+        Page<ScheduleAddressEntity> scheduleAddressPage = scheduleAddressRepo.findByScheduleEntity(schedule, PageRequest.of(0, 20));
         Page<ScheduleAddressObjectDto> scheduleAddressObjectMap = scheduleAddressPage.map(
                 s -> new ScheduleAddressObjectDto(s.getUserName(), s.getAddressName(), s.getPlaceName(),
                         s.getRoadName(), s.getLat(), s.getLat())
@@ -96,7 +99,7 @@ public class ScheduleService {
         ScheduleEntity schedule = scheduleRepo.findOneByUuid(uuid);
         scheduleRepo.delete(schedule);
 
-        List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleUuid(schedule.getUuid()).getContent();
+        List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleEntity(schedule, PageRequest.of(0, 20)).getContent();
         for (ScheduleAddressEntity scheduleAddress : scheduleAddressList) {
             scheduleAddressRepo.delete(scheduleAddress);
         }
