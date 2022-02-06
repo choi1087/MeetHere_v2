@@ -12,7 +12,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShareSearchDestinationDto {
+public class ShareSearchDestinationResDto {
 
     @Schema(description = "공유코드 uuid")
     private UUID uuid;

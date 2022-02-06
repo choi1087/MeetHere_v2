@@ -31,6 +31,11 @@ spring:
           starttls:
             enable: true
 
+  # swagger 열기 위해서, spring 2.6.0 이후로 ant_path_parser 로 변경되었기 때문에, 설정 필요
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
   output:
     ansi:
       enabled: always

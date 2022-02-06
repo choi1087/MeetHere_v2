@@ -44,12 +44,13 @@ public class ScheduleAddressEntity {
     @JoinColumn(name = "schedule_uuid", nullable = false)
     private ScheduleEntity scheduleEntity;
 
-    public void createScheduleAddress(ScheduleAddressSaveReqDto scheduleAddressSaveReqDto) {
+    public void createScheduleAddress(ScheduleAddressSaveReqDto scheduleAddressSaveReqDto, ScheduleEntity scheduleEntity) {
         this.userName = scheduleAddressSaveReqDto.getUserName();
         this.addressName = scheduleAddressSaveReqDto.getAddressName();
         this.placeName = scheduleAddressSaveReqDto.getPlaceName();
         this.roadName = scheduleAddressSaveReqDto.getRoadName();
         this.lat = scheduleAddressSaveReqDto.getLat();
         this.lon = scheduleAddressSaveReqDto.getLon();
+        this.scheduleEntity = scheduleEntity;
     }
 }

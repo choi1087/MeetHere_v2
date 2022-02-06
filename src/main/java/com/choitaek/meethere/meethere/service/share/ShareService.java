@@ -3,8 +3,8 @@ package com.choitaek.meethere.meethere.service.share;
 import com.choitaek.meethere.meethere.dto.common.response.ResponseSuccessDto;
 import com.choitaek.meethere.meethere.dto.request.share.ShareSaveReqDto;
 import com.choitaek.meethere.meethere.dto.response.share.ShareSaveResDto;
-import com.choitaek.meethere.meethere.dto.response.share.ShareSearchDestinationDto;
-import com.choitaek.meethere.meethere.dto.response.share.ShareSearchStartDto;
+import com.choitaek.meethere.meethere.dto.response.share.ShareSearchDestinationResDto;
+import com.choitaek.meethere.meethere.dto.response.share.ShareSearchStartResDto;
 import com.choitaek.meethere.meethere.dto.share.ShareObjectDto;
 import com.choitaek.meethere.meethere.entity.share.ShareAddressEntity;
 import com.choitaek.meethere.meethere.entity.share.ShareEntity;
@@ -37,12 +37,13 @@ public class ShareService {
         // 공유코드 저장
         ShareEntity share = new ShareEntity();
         share.createShare(shareSaveReqDto);
+        shareRepo.save(share);
 
         // 공유코드 - 출발주소 리스트 저장
         List<ShareObjectDto> startAddressList = shareSaveReqDto.getStartAddressList();
         for (ShareObjectDto shareObjectDto : startAddressList) {
             ShareAddressEntity shareAddress = new ShareAddressEntity();
-            shareAddress.createShareAddress(shareObjectDto);
+            shareAddress.createShareAddress(shareObjectDto, share);
             shareAddressRepo.save(shareAddress);
         }
 
@@ -53,7 +54,7 @@ public class ShareService {
 
     // 공유코드에 저장된 도착주소
     @Transactional(readOnly = true)
-    public ResponseSuccessDto<ShareSearchDestinationDto> searchShareDestination(String code) {
+    public ResponseSuccessDto<ShareSearchDestinationResDto> searchShareDestination(String code) {
         ShareEntity share = shareRepo.findOneByCode(code);
         if (share == null) {
             try {
@@ -62,25 +63,25 @@ public class ShareService {
                 e.printStackTrace();
             }
         }
-        ShareSearchDestinationDto shareSearchDestinationDto = new ShareSearchDestinationDto(
+        ShareSearchDestinationResDto shareSearchDestinationResDto = new ShareSearchDestinationResDto(
                 share.getUuid(), share.getUserName(), share.getAddressName(), share.getPlaceName(), share.getRoadName(),
                 share.getLat(), share.getLon()
         );
-        ResponseSuccessDto<ShareSearchDestinationDto> res = responseUtil.successResponse(shareSearchDestinationDto);
+        ResponseSuccessDto<ShareSearchDestinationResDto> res = responseUtil.successResponse(shareSearchDestinationResDto);
         return res;
     }
 
     // 공유코드에 저장된 출발주소 리스트
     @Transactional(readOnly = true)
-    public ResponseSuccessDto<List<ShareSearchStartDto>> searchShareStartList(UUID shareUuid) {
+    public ResponseSuccessDto<List<ShareSearchStartResDto>> searchShareStartList(UUID shareUuid) {
         ShareEntity share = shareRepo.findOneByUuid(shareUuid);
         Page<ShareAddressEntity> startAddressPage = shareAddressRepo.findByShareEntity(share, PageRequest.of(0, 20));
-        Page<ShareSearchStartDto> toMap = startAddressPage.map(s -> new ShareSearchStartDto(
+        Page<ShareSearchStartResDto> toMap = startAddressPage.map(s -> new ShareSearchStartResDto(
                         s.getUserName(), s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLat()
                 )
         );
-        List<ShareSearchStartDto> shareSearchStartDtoList = toMap.getContent();
-        ResponseSuccessDto<List<ShareSearchStartDto>> res = responseUtil.successResponse(shareSearchStartDtoList);
+        List<ShareSearchStartResDto> shareSearchStartResDtoList = toMap.getContent();
+        ResponseSuccessDto<List<ShareSearchStartResDto>> res = responseUtil.successResponse(shareSearchStartResDtoList);
         return res;
     }
 

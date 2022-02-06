@@ -43,12 +43,13 @@ public class ShareAddressEntity {
     @JoinColumn(name = "share_uuid", nullable = false)
     private ShareEntity shareEntity;
 
-    public void createShareAddress(ShareObjectDto shareObjectDto) {
+    public void createShareAddress(ShareObjectDto shareObjectDto, ShareEntity shareEntity) {
         this.userName = shareObjectDto.getUserName();
         this.addressName = shareObjectDto.getAddressName();
         this.placeName = shareObjectDto.getPlaceName();
         this.roadName = shareObjectDto.getRoadName();
         this.lat = shareObjectDto.getLat();
         this.lon = shareObjectDto.getLon();
+        this.shareEntity = shareEntity;
     }
 }

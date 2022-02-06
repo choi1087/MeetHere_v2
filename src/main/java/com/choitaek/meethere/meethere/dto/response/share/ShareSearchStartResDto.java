@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ShareSearchStartDto {
+public class ShareSearchStartResDto {
     @Schema(description = "회원 이름")
     private String userName;
 

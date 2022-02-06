@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -38,8 +39,7 @@ public class ScheduleService {
 
     // 스케쥴 저장
     public ResponseSuccessDto<ScheduleSaveResDto> saveSchedule(ScheduleSaveReqDto scheduleSaveReqDto) {
-        UUID memberUuid = scheduleSaveReqDto.getMemberUuid();
-        MemberEntity member = memberRepo.findOneByUuid(memberUuid);
+        MemberEntity member = memberRepo.findOneByUuid(scheduleSaveReqDto.getMemberUuid());
 
         ScheduleEntity schedule = new ScheduleEntity();
         schedule.createSchedule(scheduleSaveReqDto, member);
@@ -48,7 +48,7 @@ public class ScheduleService {
         List<ScheduleAddressSaveReqDto> startAddressList = scheduleSaveReqDto.getStartAddressList();
         for (ScheduleAddressSaveReqDto scheduleAddressSaveReqDto : startAddressList) {
             ScheduleAddressEntity scheduleAddress = new ScheduleAddressEntity();
-            scheduleAddress.createScheduleAddress(scheduleAddressSaveReqDto);
+            scheduleAddress.createScheduleAddress(scheduleAddressSaveReqDto, schedule);
             scheduleAddressRepo.save(scheduleAddress);
         }
 
@@ -97,13 +97,13 @@ public class ScheduleService {
     // 스케쥴 삭제
     public ResponseSuccessDto<ScheduleDeleteResDto> deleteSchedule(UUID uuid) {
         ScheduleEntity schedule = scheduleRepo.findOneByUuid(uuid);
-        scheduleRepo.delete(schedule);
 
         List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleEntity(schedule, PageRequest.of(0, 20)).getContent();
         for (ScheduleAddressEntity scheduleAddress : scheduleAddressList) {
             scheduleAddressRepo.delete(scheduleAddress);
         }
 
+        scheduleRepo.delete(schedule);
         ScheduleDeleteResDto scheduleDeleteResDto = new ScheduleDeleteResDto("스케쥴 삭제 성공");
         ResponseSuccessDto<ScheduleDeleteResDto> res = responseUtil.successResponse(scheduleDeleteResDto);
         return res;

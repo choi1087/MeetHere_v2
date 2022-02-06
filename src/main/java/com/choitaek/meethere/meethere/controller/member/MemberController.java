@@ -11,6 +11,7 @@ import com.choitaek.meethere.meethere.service.mail.MailService;
 import com.choitaek.meethere.meethere.service.member.MemberService;
 import com.choitaek.meethere.meethere.service.schedule.ScheduleService;
 import com.choitaek.meethere.meethere.service.share.ShareService;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Api("회원")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
