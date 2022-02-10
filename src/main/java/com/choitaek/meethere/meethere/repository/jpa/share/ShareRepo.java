@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ShareRepo extends JpaRepository<ShareEntity, UUID> {
@@ -12,5 +13,5 @@ public interface ShareRepo extends JpaRepository<ShareEntity, UUID> {
 
     ShareEntity findOneByCode(String code);
 
-    ShareEntity findOneByUuid(UUID uuid);
+    Optional<ShareEntity> findByCode(String code);
 }

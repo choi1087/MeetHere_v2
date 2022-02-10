@@ -9,6 +9,7 @@ import com.choitaek.meethere.meethere.dto.request.member.MemberVerifyReqDto;
 import com.choitaek.meethere.meethere.dto.response.member.*;
 import com.choitaek.meethere.meethere.entity.member.MemberAddressEntity;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
+import com.choitaek.meethere.meethere.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
@@ -128,7 +129,7 @@ public class MemberService {
     // 아이디로 회원 조회
     @Transactional(readOnly = true)
     public ResponseSuccessDto<MemberSearchResDto> findOne(UUID uuid) {
-        MemberEntity member = memberRepo.findOneByUuid(uuid);
+        MemberEntity member = memberRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         MemberSearchResDto findMember = getMemberSearchResDto(member);
         ResponseSuccessDto<MemberSearchResDto> res = responseUtil.successResponse(findMember);
         return res;
@@ -190,7 +191,7 @@ public class MemberService {
             }
         }
 
-        MemberEntity member = memberRepo.findOneByUuid(memberUpdateReqDto.getUuid());
+        MemberEntity member = memberRepo.findById(memberUpdateReqDto.getUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         member.updateMember(memberUpdateReqDto);
 
         MemberUpdateResDto memberUpdateResDto = new MemberUpdateResDto("수정 완료");
@@ -200,7 +201,7 @@ public class MemberService {
     
     // 회원 탈퇴
     public ResponseSuccessDto<MemberDeleteResDto> deleteMember(UUID uuid) {
-        MemberEntity member = memberRepo.findOneByUuid(uuid);
+        MemberEntity member = memberRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         MemberAddressEntity memberAddress = memberAddressRepo.findOneByMemberEntity(member);
         memberAddressRepo.delete(memberAddress);
         memberRepo.delete(member);
@@ -261,21 +262,4 @@ public class MemberService {
         );
         return addressObjectDto;
     }
-
-//    @Override
-//    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-//        MemberEntity member = memberRepo.findOneByEmail(email);
-//        if (member == null) {
-//            try {
-//                throw new Exception("해당 회원이 존재하지 않습니다.");
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
-//        grantedAuthorities.add(new SimpleGrantedAuthority("TRUE"));
-//
-//        return new User(member.getEmail(), member.getPw(), grantedAuthorities);
-//    }
 }

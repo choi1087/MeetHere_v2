@@ -13,8 +13,6 @@ import java.util.UUID;
 public interface MemberRepo extends JpaRepository<MemberEntity, UUID> {
     Page<MemberEntity> findAll(Pageable pageable);
 
-    MemberEntity findOneByUuid(UUID uuid);
-
     MemberEntity findOneByEmail(String email);
 
     Page<MemberEntity> findByName(String name, Pageable pageable);

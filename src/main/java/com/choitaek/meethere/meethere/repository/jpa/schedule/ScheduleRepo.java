@@ -9,8 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface ScheduleRepo extends JpaRepository<ScheduleEntity, UUID> {
-    ScheduleEntity findOneByUuid(UUID uuid);
-
     Page<ScheduleEntity> findAll(Pageable pageable);
 
     Page<ScheduleEntity> findByMemberEntity(MemberEntity memberEntity, Pageable pageable);
