@@ -6,10 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ScheduleRepo extends JpaRepository<ScheduleEntity, UUID> {
     Page<ScheduleEntity> findAll(Pageable pageable);
 
-    Page<ScheduleEntity> findByMemberEntity(MemberEntity memberEntity, Pageable pageable);
+    List<ScheduleEntity> findByMemberEntity(MemberEntity memberEntity);
 }

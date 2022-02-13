@@ -16,8 +16,6 @@ import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,13 +37,10 @@ public class FriendService {
     // 친구 찾기
     @Transactional(readOnly = true)
     public ResponseSuccessDto<FriendCheckResDto> checkFriend(FriendCheckReqDto friendCheckReqDto) {
-        MemberEntity member = memberRepo.findOneByEmail(friendCheckReqDto.getEmail());
+        MemberEntity member = memberRepo.findByEmail(friendCheckReqDto.getEmail())
+                .orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
         if (!(member.getName().equals(friendCheckReqDto.getName()) && member.getPhone().equals(friendCheckReqDto.getPhone()))) {
-            try {
-                throw new Exception("해당 회원이 존재하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            throw new ApiRequestException("해당 회원이 존재하지 않습니다.");
         }
         FriendCheckResDto friendCheckResDto = new FriendCheckResDto("친구 조회 성공", member.getUuid());
         ResponseSuccessDto<FriendCheckResDto> res = responseUtil.successResponse(friendCheckResDto);
@@ -57,22 +52,14 @@ public class FriendService {
         MemberEntity member = memberRepo.findById(friendSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         MemberEntity friendMember = memberRepo.findById(friendSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         if (friendMember == null) {
-            try {
-                throw new Exception("해당 회원이 존재하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            throw new ApiRequestException("해당 회원이 존재하지 않습니다.");
         }
 
         // 중복 친구추가 확인
-        List<FriendEntity> friendList = friendRepo.findByMemberEntity(member, PageRequest.of(0, 20)).getContent();
+        List<FriendEntity> friendList = friendRepo.findByMemberEntity(member);
         for (FriendEntity friend : friendList) {
             if (friend.getEmail().equals(friendMember.getEmail())) {
-                try {
-                    throw new Exception("이미 존재하는 회원입니다.");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                throw new ApiRequestException("이미 존재하는 회원입니다.");
             }
         }
 
@@ -89,9 +76,9 @@ public class FriendService {
     @Transactional(readOnly = true)
     public ResponseSuccessDto<FriendSearchResDto> searchFriend(UUID memberUuid) {
         MemberEntity member = memberRepo.findById(memberUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
-        Page<FriendEntity> friendPage = friendRepo.findByMemberEntity(member, PageRequest.of(0, 20));
+        List<FriendEntity> friendList = friendRepo.findByMemberEntity(member);
         FriendSearchResDto friendSearchResDto = new FriendSearchResDto(
-                "친구 목록 조회 성공", changeEntityToObject(friendPage.getContent())
+                "친구 목록 조회 성공", changeEntityToObject(friendList)
         );
         ResponseSuccessDto<FriendSearchResDto> res = responseUtil.successResponse(friendSearchResDto);
         return res;

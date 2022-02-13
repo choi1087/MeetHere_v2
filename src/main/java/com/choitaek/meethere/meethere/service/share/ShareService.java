@@ -14,13 +14,12 @@ import com.choitaek.meethere.meethere.repository.jpa.share.ShareRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -69,12 +68,13 @@ public class ShareService {
     @Transactional(readOnly = true)
     public ResponseSuccessDto<List<ShareSearchStartResDto>> searchShareStartList(UUID shareUuid) {
         ShareEntity share = shareRepo.findById(shareUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 공유입니다."));
-        Page<ShareAddressEntity> startAddressPage = shareAddressRepo.findByShareEntity(share, PageRequest.of(0, 20));
-        Page<ShareSearchStartResDto> toMap = startAddressPage.map(s -> new ShareSearchStartResDto(
-                        s.getUserName(), s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLat()
+        List<ShareAddressEntity> startAddressList = shareAddressRepo.findByShareEntity(share);
+        List<ShareSearchStartResDto> shareSearchStartResDtoList = startAddressList.stream().map(
+                s -> new ShareSearchStartResDto(
+                        s.getUserName(), s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLon()
                 )
-        );
-        List<ShareSearchStartResDto> shareSearchStartResDtoList = toMap.getContent();
+        ).collect(Collectors.toList());
+
         ResponseSuccessDto<List<ShareSearchStartResDto>> res = responseUtil.successResponse(shareSearchStartResDtoList);
         return res;
     }

@@ -13,13 +13,11 @@ import java.util.UUID;
 public interface MemberRepo extends JpaRepository<MemberEntity, UUID> {
     Page<MemberEntity> findAll(Pageable pageable);
 
-    MemberEntity findOneByEmail(String email);
+    List<MemberEntity> findByName(String name);
 
-    Page<MemberEntity> findByName(String name, Pageable pageable);
+    Optional<MemberEntity> findByNameAndPhone(String name, String phone);
 
-    MemberEntity findOneByNameAndPhone(String name, String phone);
-
-    MemberEntity findOneByEmailAndNameAndPhone(String email, String name, String phone);
+    Optional<MemberEntity> findByEmailAndNameAndPhone(String email, String name, String phone);
 
     Optional<MemberEntity> findByEmail(String email);
 }

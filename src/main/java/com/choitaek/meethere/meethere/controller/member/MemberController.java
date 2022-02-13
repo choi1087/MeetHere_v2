@@ -6,6 +6,7 @@ import com.choitaek.meethere.meethere.dto.request.member.MemberSaveReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberUpdateReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberVerifyReqDto;
 import com.choitaek.meethere.meethere.dto.response.member.*;
+import com.choitaek.meethere.meethere.exception.ErrorResponse;
 import com.choitaek.meethere.meethere.service.friend.FriendService;
 import com.choitaek.meethere.meethere.service.mail.MailService;
 import com.choitaek.meethere.meethere.service.member.MemberService;
@@ -19,7 +20,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -102,8 +106,14 @@ public class MemberController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @GetMapping("/member/login")
     public ResponseEntity<ResponseSuccessDto<MemberLoginResDto>> login(
-            @RequestBody MemberLoginReqDto memberLoginReqDto
+            @Validated @RequestBody MemberLoginReqDto memberLoginReqDto,
+            BindingResult result
     ) {
+        ResponseEntity errorResponse = checkBindingResultError(result);
+        if (errorResponse != null) {
+            return errorResponse;
+        }
+
         return ResponseEntity.ok(memberService.login(memberLoginReqDto));
     }
 
@@ -129,5 +139,16 @@ public class MemberController {
             @PathVariable UUID uuid
     ) {
         return ResponseEntity.ok(memberService.deleteMember(uuid));
+    }
+
+    //check valid error
+    private ResponseEntity checkBindingResultError(BindingResult result) {
+        if (result.hasErrors()) {
+            ErrorResponse errorResponse = new ErrorResponse(
+                    400, result.getFieldError().getDefaultMessage()
+            );
+            return new  ResponseEntity(errorResponse, HttpStatus.OK);
+        }
+        return null;
     }
 }

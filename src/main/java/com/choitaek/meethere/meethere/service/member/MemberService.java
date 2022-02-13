@@ -50,7 +50,6 @@ public class MemberService {
 
         // 중복 회원 검증
         if (!validateDuplicateMember(memberSaveReqDto)) {
-            System.out.println("회원 가입 실패 (중복회원)");
             return responseUtil.successResponse(new MemberSaveResDto("회원가입 실패"));
         }
 
@@ -94,22 +93,13 @@ public class MemberService {
 
     // 로그인
     public ResponseSuccessDto<MemberLoginResDto> login(MemberLoginReqDto memberLoginReqDto) {
-        MemberEntity member = memberRepo.findOneByEmail(memberLoginReqDto.getEmail());
-        if (member == null) {
-            try {
-                throw new Exception("해당 회원이 존재하지 않습니다");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        MemberEntity member = memberRepo.findByEmail(memberLoginReqDto.getEmail()).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
 
-        System.out.println("입력 비밀번호 = " + memberLoginReqDto.getPw());
-        System.out.println("멤버 비밀번호 = " + member.getPw());
         /*if (!passwordEncoder.matches(memberLoginReqDto.getPw(), member.getPw())) {
 
         }*/
         if (!memberLoginReqDto.getPw().equals(member.getPw())) {
-            return responseUtil.successResponse(new MemberLoginResDto("로그인 실패"));
+            return responseUtil.successResponse(new ApiRequestException("로그인 실패"));
         }
 
         MemberLoginResDto memberLoginResDto = new MemberLoginResDto("로그인 성공");
@@ -138,23 +128,16 @@ public class MemberService {
     // 이메일로 회원 조회
     @Transactional(readOnly = true)
     public ResponseSuccessDto<MemberSearchResDto> findByEmail(String email) {
-        MemberEntity member = memberRepo.findOneByEmail(email);
+        MemberEntity member = memberRepo.findByEmail(email).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
         MemberSearchResDto findMember = getMemberSearchResDto(member);
         ResponseSuccessDto<MemberSearchResDto> res = responseUtil.successResponse(findMember);
         return res;
     }
-    
+
     // 회원 이메일 찾기 (이름, 휴대전화)
     @Transactional(readOnly = true)
     public ResponseSuccessDto<MemberFindEmailResDto> findMemberEmail(String name, String phone) {
-        MemberEntity member = memberRepo.findOneByNameAndPhone(name, phone);
-        if (member == null) {
-            try {
-                throw new Exception("해당 회원이 존재하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        MemberEntity member = memberRepo.findByNameAndPhone(name, phone).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다"));
         MemberFindEmailResDto memberFindEmailResDto = new MemberFindEmailResDto("회원 조회 성공", member.getEmail());
         ResponseSuccessDto<MemberFindEmailResDto> res = responseUtil.successResponse(memberFindEmailResDto);
         return res;
@@ -163,14 +146,9 @@ public class MemberService {
     // 회원 비밀번호 찾기 (이메일, 이름, 휴대전화)
     @Transactional(readOnly = true)
     public ResponseSuccessDto<MemberFindPwResDto> findMemberPw(String email, String name, String phone) {
-        MemberEntity findMember = memberRepo.findOneByEmailAndNameAndPhone(email, name, phone);
-        if (findMember == null) {
-            try {
-                throw new Exception("해당 회원이 존재하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        MemberEntity findMember = memberRepo.findByEmailAndNameAndPhone(email, name, phone).orElseThrow(
+                () -> new ApiRequestException("해당 회원이 존재하지 않습니다.")
+        );
 
         MemberFindPwResDto memberFindPwResDto = new MemberFindPwResDto(
                 "회원 조회 성공", "비밀번호가 임시 비밀번호로 변경되었습니다. 임시 비밀번호는 해당 계정의 이메일로 발송하였습니다."
@@ -181,14 +159,8 @@ public class MemberService {
 
     // 회원 정보 수정
     public ResponseSuccessDto<MemberUpdateResDto> updateMember(MemberUpdateReqDto memberUpdateReqDto) {
-        System.out.println("1차비번 = " + memberUpdateReqDto.getPw());
-        System.out.println("2차비번 = " + memberUpdateReqDto.getCheckedPw());
         if (!memberUpdateReqDto.getPw().equals(memberUpdateReqDto.getCheckedPw())) {
-            try {
-                throw new Exception("비밀번호가 일치하지 않습니다.");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            throw new ApiRequestException("비밀번호가 일치하지 않습니다.");
         }
 
         MemberEntity member = memberRepo.findById(memberUpdateReqDto.getUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
@@ -198,7 +170,7 @@ public class MemberService {
         ResponseSuccessDto<MemberUpdateResDto> res = responseUtil.successResponse(memberUpdateResDto);
         return res;
     }
-    
+
     // 회원 탈퇴
     public ResponseSuccessDto<MemberDeleteResDto> deleteMember(UUID uuid) {
         MemberEntity member = memberRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
@@ -210,13 +182,12 @@ public class MemberService {
         ResponseSuccessDto<MemberDeleteResDto> res = responseUtil.successResponse(memberDeleteResDto);
         return res;
     }
-    
+
     // 중복 회원 확인
     private Boolean validateDuplicateMember(MemberSaveReqDto memberSaveReqDto) {
         // 중복 이메일 확인
         Optional<MemberEntity> byEmail = memberRepo.findByEmail(memberSaveReqDto.getEmail());
         if (byEmail.isEmpty()) {
-            System.out.println("회원 가능 이메일");
             return true;
         }
 
@@ -224,18 +195,15 @@ public class MemberService {
 
         // 인증 절차가 안된 이메일이라면, 이전 데이터 삭제
         if (!member.getIsActive()) {
-            System.out.println("미인증 메일 데이터 삭제");
             memberRepo.delete(member);
         } else {
-            System.out.println("이미 존재하는 회원입니다.");
             return false;
         }
 
         // 중복 이름, 번호
-        Page<MemberEntity> findMember = memberRepo.findByName(memberSaveReqDto.getName(), PageRequest.of(0, 20));
+        List<MemberEntity> findMember = memberRepo.findByName(memberSaveReqDto.getName());
         for (MemberEntity memberEntity : findMember) {
             if (memberEntity.getPhone().equals(memberSaveReqDto.getPhone())) {
-                System.out.println("이미 존재하는 회원입니다");
                 return false;
             }
         }
@@ -250,7 +218,7 @@ public class MemberService {
         );
         return memberSearchResDto;
     }
-    
+
     // MemberAddressEntity -> AddressObjectDto
     private AddressObjectDto changeMemberEntityToDto(MemberAddressEntity memberAddressEntity) {
         AddressObjectDto addressObjectDto = new AddressObjectDto(

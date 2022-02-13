@@ -17,14 +17,13 @@ import com.choitaek.meethere.meethere.repository.jpa.schedule.ScheduleRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -61,12 +60,14 @@ public class ScheduleService {
     // 회원의 스케쥴 목록
     public ResponseSuccessDto<ScheduleSearchResDto> searchScheduleList(UUID memberUuid) {
         MemberEntity member = memberRepo.findById(memberUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
-        Page<ScheduleEntity> schedulePage = scheduleRepo.findByMemberEntity(member, PageRequest.of(0, 20));
-        Page<ScheduleObjectResDto> scheduleObjectResDtoMap = schedulePage.map(
-                s -> new ScheduleObjectResDto(s.getUuid(), s.getName(), s.getDate(),
-                        s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLon())
-        );
-        ScheduleSearchResDto scheduleSearchResDto = new ScheduleSearchResDto("스케쥴 목록 조회 성공", scheduleObjectResDtoMap.getContent());
+        List<ScheduleEntity> scheduleList = scheduleRepo.findByMemberEntity(member);
+        List<ScheduleObjectResDto> scheduleObjectResDtoList
+                = scheduleList.stream().map(s -> new ScheduleObjectResDto(
+                        s.getUuid(), s.getName(), s.getDate(), s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLon()
+                ))
+                .collect(Collectors.toList());
+
+        ScheduleSearchResDto scheduleSearchResDto = new ScheduleSearchResDto("스케쥴 목록 조회 성공", scheduleObjectResDtoList);
         ResponseSuccessDto<ScheduleSearchResDto> res = responseUtil.successResponse(scheduleSearchResDto);
         return res;
     }
@@ -74,13 +75,16 @@ public class ScheduleService {
     // 스케쥴 - 출발 주소 리스트
     public ResponseSuccessDto<ScheduleAddressSearchResDto> searchStartAddressList(UUID scheduleUuid) {
         ScheduleEntity schedule = scheduleRepo.findById(scheduleUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 스케쥴입니다."));
-        Page<ScheduleAddressEntity> scheduleAddressPage = scheduleAddressRepo.findByScheduleEntity(schedule, PageRequest.of(0, 20));
-        Page<ScheduleAddressObjectDto> scheduleAddressObjectMap = scheduleAddressPage.map(
-                s -> new ScheduleAddressObjectDto(s.getUserName(), s.getAddressName(), s.getPlaceName(),
-                        s.getRoadName(), s.getLat(), s.getLat())
-        );
+        List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleEntity(schedule);
+        List<ScheduleAddressObjectDto> scheduleAddressObjectDtoList = scheduleAddressList.stream().map(
+                s -> new ScheduleAddressObjectDto(
+                        s.getUserName(), s.getAddressName(), s.getPlaceName(), s.getRoadName(), s.getLat(), s.getLon()
+                )
+        ).collect(Collectors.toList());
+
+
         ScheduleAddressSearchResDto scheduleAddressSearchResDto = new ScheduleAddressSearchResDto(
-                "출발 주소 목록 조회 성공", scheduleAddressObjectMap.getContent()
+                "출발 주소 목록 조회 성공", scheduleAddressObjectDtoList
         );
         ResponseSuccessDto<ScheduleAddressSearchResDto> res = responseUtil.successResponse(scheduleAddressSearchResDto);
         return res;
@@ -99,7 +103,7 @@ public class ScheduleService {
     public ResponseSuccessDto<ScheduleDeleteResDto> deleteSchedule(UUID uuid) {
         ScheduleEntity schedule = scheduleRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 스케쥴입니다."));
 
-        List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleEntity(schedule, PageRequest.of(0, 20)).getContent();
+        List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleEntity(schedule);
         for (ScheduleAddressEntity scheduleAddress : scheduleAddressList) {
             scheduleAddressRepo.delete(scheduleAddress);
         }

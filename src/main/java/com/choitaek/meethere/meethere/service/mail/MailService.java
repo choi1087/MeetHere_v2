@@ -2,6 +2,7 @@ package com.choitaek.meethere.meethere.service.mail;
 
 import com.choitaek.meethere.meethere.dto.MailDto;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
+import com.choitaek.meethere.meethere.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +56,10 @@ public class MailService {
 
     // 비밀번호 변경
     public void updatePassword(String email, String pw) {
-        MemberEntity memberEntity = memberRepo.findOneByEmail(email);
+        MemberEntity memberEntity = memberRepo.findByEmail(email).orElseThrow(
+                () -> new ApiRequestException("해당 회원이 존재하지 않습니다.")
+        );
+
         String newPw = passwordEncoder.encode(pw);
         memberEntity.setPw(newPw);
     }
