@@ -18,7 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-      show-sql: true
+        show-sql: true
   mail:
     host: smtp.gmail.com
     port: 587
@@ -39,3 +39,7 @@ spring:
   output:
     ansi:
       enabled: always
+
+logging:
+  level:
+    org.hibernate.SQL: debug
