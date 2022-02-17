@@ -1,6 +1,7 @@
 package com.choitaek.meethere.meethere.service.member;
 
 import com.choitaek.meethere.meethere.dto.AddressObjectDto;
+import com.choitaek.meethere.meethere.dto.MailDto;
 import com.choitaek.meethere.meethere.dto.common.response.ResponseSuccessDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberLoginReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberSaveReqDto;
@@ -12,18 +13,13 @@ import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import com.choitaek.meethere.meethere.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
+import com.choitaek.meethere.meethere.service.mail.MailService;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +29,6 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MemberService {
 
     private final ResponseUtil responseUtil;
@@ -45,7 +40,10 @@ public class MemberService {
     private final MemberRepo memberRepo;
     private final MemberAddressRepo memberAddressRepo;
 
+    private final MailService mailService;
+
     // 회원가입
+    @Transactional
     public ResponseSuccessDto<MemberSaveResDto> save(MemberSaveReqDto memberSaveReqDto) {
 
         // 중복 회원 검증
@@ -55,10 +53,7 @@ public class MemberService {
 
         // 회원 정보
         MemberEntity memberEntity = new MemberEntity();
-        memberEntity.createMember(memberSaveReqDto);
-        Random random = new Random(System.currentTimeMillis());
-        memberEntity.setAuthNum(100000 + random.nextInt(900000));
-        memberEntity.setIsActive(false);
+        memberEntity.createMember(memberSaveReqDto, passwordEncoder.encode(memberSaveReqDto.getPw()));
 
         // 회원 주소 정보
         MemberAddressEntity memberAddressEntity = new MemberAddressEntity();
@@ -67,23 +62,23 @@ public class MemberService {
         memberRepo.save(memberEntity);
         memberAddressRepo.save(memberAddressEntity);
 
+        MailDto mailDto = mailService.verification(memberEntity.getEmail(), memberEntity.getName(), memberEntity.getAuthNum());
+        mailService.mailSend(mailDto);
+
         MemberSaveResDto memberSaveResDto = new MemberSaveResDto("인증번호 발송");
         ResponseSuccessDto<MemberSaveResDto> res = responseUtil.successResponse(memberSaveResDto);
         return res;
     }
 
     // 회원 활성화 (인증 성공시)
+    @Transactional
     public ResponseSuccessDto<MemberVerifyResDto> activateMember(MemberVerifyReqDto memberVerifyReqDto) {
         ResponseSuccessDto<MemberVerifyResDto> res;
-        Optional<MemberEntity> byEmail = memberRepo.findByEmail(memberVerifyReqDto.getEmail());
-        MemberEntity member = byEmail.get();
-
-        if (byEmail.isEmpty()) {
-            return responseUtil.successResponse(new MemberVerifyResDto("해당 회원이 존재하지 않습니다."));
-        }
+        MemberEntity member = memberRepo.findByEmail(memberVerifyReqDto.getEmail())
+                .orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
 
         if (member.getAuthNum() == memberVerifyReqDto.getAuthNum()) {
-            member.setIsActive(true);
+            member.updateIsActive(true);
             res = responseUtil.successResponse(new MemberVerifyResDto("인증 성공"));
             return res;
         }
@@ -92,13 +87,11 @@ public class MemberService {
     }
 
     // 로그인
+    @Transactional
     public ResponseSuccessDto<MemberLoginResDto> login(MemberLoginReqDto memberLoginReqDto) {
         MemberEntity member = memberRepo.findByEmail(memberLoginReqDto.getEmail()).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
 
-        /*if (!passwordEncoder.matches(memberLoginReqDto.getPw(), member.getPw())) {
-
-        }*/
-        if (!memberLoginReqDto.getPw().equals(member.getPw())) {
+        if (!passwordEncoder.matches(memberLoginReqDto.getPw(), member.getPw())) {
             return responseUtil.successResponse(new ApiRequestException("로그인 실패"));
         }
 
@@ -116,24 +109,6 @@ public class MemberService {
         return res;
     }
 
-    // 아이디로 회원 조회
-    @Transactional(readOnly = true)
-    public ResponseSuccessDto<MemberSearchResDto> findOne(UUID uuid) {
-        MemberEntity member = memberRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
-        MemberSearchResDto findMember = getMemberSearchResDto(member);
-        ResponseSuccessDto<MemberSearchResDto> res = responseUtil.successResponse(findMember);
-        return res;
-    }
-
-    // 이메일로 회원 조회
-    @Transactional(readOnly = true)
-    public ResponseSuccessDto<MemberSearchResDto> findByEmail(String email) {
-        MemberEntity member = memberRepo.findByEmail(email).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
-        MemberSearchResDto findMember = getMemberSearchResDto(member);
-        ResponseSuccessDto<MemberSearchResDto> res = responseUtil.successResponse(findMember);
-        return res;
-    }
-
     // 회원 이메일 찾기 (이름, 휴대전화)
     @Transactional(readOnly = true)
     public ResponseSuccessDto<MemberFindEmailResDto> findMemberEmail(String name, String phone) {
@@ -144,11 +119,14 @@ public class MemberService {
     }
 
     // 회원 비밀번호 찾기 (이메일, 이름, 휴대전화)
-    @Transactional(readOnly = true)
+    @Transactional
     public ResponseSuccessDto<MemberFindPwResDto> findMemberPw(String email, String name, String phone) {
         MemberEntity findMember = memberRepo.findByEmailAndNameAndPhone(email, name, phone).orElseThrow(
                 () -> new ApiRequestException("해당 회원이 존재하지 않습니다.")
         );
+
+        MailDto mailDto = mailService.createMailAndChangePassword(findMember);
+        mailService.mailSend(mailDto);
 
         MemberFindPwResDto memberFindPwResDto = new MemberFindPwResDto(
                 "회원 조회 성공", "비밀번호가 임시 비밀번호로 변경되었습니다. 임시 비밀번호는 해당 계정의 이메일로 발송하였습니다."
@@ -158,13 +136,14 @@ public class MemberService {
     }
 
     // 회원 정보 수정
+    @Transactional
     public ResponseSuccessDto<MemberUpdateResDto> updateMember(MemberUpdateReqDto memberUpdateReqDto) {
         if (!memberUpdateReqDto.getPw().equals(memberUpdateReqDto.getCheckedPw())) {
             throw new ApiRequestException("비밀번호가 일치하지 않습니다.");
         }
 
         MemberEntity member = memberRepo.findById(memberUpdateReqDto.getUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
-        member.updateMember(memberUpdateReqDto);
+        member.updateMember(memberUpdateReqDto, passwordEncoder.encode(memberUpdateReqDto.getPw()));
 
         MemberUpdateResDto memberUpdateResDto = new MemberUpdateResDto("수정 완료");
         ResponseSuccessDto<MemberUpdateResDto> res = responseUtil.successResponse(memberUpdateResDto);
@@ -172,6 +151,7 @@ public class MemberService {
     }
 
     // 회원 탈퇴
+    @Transactional
     public ResponseSuccessDto<MemberDeleteResDto> deleteMember(UUID uuid) {
         MemberEntity member = memberRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         MemberAddressEntity memberAddress = memberAddressRepo.findOneByMemberEntity(member);

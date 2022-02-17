@@ -1,6 +1,5 @@
 package com.choitaek.meethere.meethere.entity.friend;
 
-import com.choitaek.meethere.meethere.dto.request.friend.FriendSaveReqDto;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import com.choitaek.meethere.meethere.entity.TimeEntity;
 import lombok.*;
@@ -11,7 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "friend")
 @NoArgsConstructor
 @AllArgsConstructor

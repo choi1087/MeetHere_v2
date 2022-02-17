@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ShareService {
 
     private final ResponseUtil responseUtil;
@@ -33,6 +32,7 @@ public class ShareService {
     private final ShareAddressRepo shareAddressRepo;
 
     // 공유코드 저장
+    @Transactional
     public ResponseSuccessDto<ShareSaveResDto> saveShare(ShareSaveReqDto shareSaveReqDto) {
         // 공유코드 저장
         ShareEntity share = new ShareEntity();

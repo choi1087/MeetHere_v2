@@ -26,7 +26,6 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class FriendService {
 
     private final ResponseUtil responseUtil;
@@ -48,6 +47,7 @@ public class FriendService {
     }
 
     // 친구 추가
+    @Transactional
     public ResponseSuccessDto<FriendSaveResDto> saveFriend(FriendSaveReqDto friendSaveReqDto) {
         MemberEntity member = memberRepo.findById(friendSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         MemberEntity friendMember = memberRepo.findById(friendSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
@@ -85,6 +85,7 @@ public class FriendService {
     }
 
     // 친구 삭제
+    @Transactional
     public ResponseSuccessDto<FriendDeleteResDto> deleteFriend(UUID friendUuid) {
         FriendEntity friend = friendRepo.findById(friendUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 친구입니다."));
         friendRepo.delete(friend);
@@ -92,7 +93,6 @@ public class FriendService {
         ResponseSuccessDto<FriendDeleteResDto> res = responseUtil.successResponse(friendDeleteResDto);
         return res;
     }
-
 
     // FriendEntity -> FriendObjectDto
     private List<FriendObjectDto> changeEntityToObject(List<FriendEntity> friendEntityList) {

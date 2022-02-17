@@ -10,8 +10,5 @@ import java.util.UUID;
 
 public interface ShareRepo extends JpaRepository<ShareEntity, UUID> {
     Page<ShareEntity> findAll(Pageable pageable);
-
-    ShareEntity findOneByCode(String code);
-
     Optional<ShareEntity> findByCode(String code);
 }

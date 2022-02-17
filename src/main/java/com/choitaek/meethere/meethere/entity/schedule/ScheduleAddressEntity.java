@@ -1,6 +1,5 @@
 package com.choitaek.meethere.meethere.entity.schedule;
 
-import com.choitaek.meethere.meethere.dto.AddressObjectDto;
 import com.choitaek.meethere.meethere.dto.request.schedule.ScheduleAddressSaveReqDto;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -10,7 +9,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "schedule_address")
 @NoArgsConstructor
 @AllArgsConstructor

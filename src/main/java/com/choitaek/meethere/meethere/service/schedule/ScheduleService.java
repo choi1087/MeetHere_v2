@@ -21,14 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ScheduleService {
 
     private final ResponseUtil responseUtil;
@@ -38,6 +36,7 @@ public class ScheduleService {
     private final MemberRepo memberRepo;
 
     // 스케쥴 저장
+    @Transactional
     public ResponseSuccessDto<ScheduleSaveResDto> saveSchedule(ScheduleSaveReqDto scheduleSaveReqDto) {
         MemberEntity member = memberRepo.findById(scheduleSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
 
@@ -58,6 +57,7 @@ public class ScheduleService {
     }
 
     // 회원의 스케쥴 목록
+    @Transactional(readOnly = true)
     public ResponseSuccessDto<ScheduleSearchResDto> searchScheduleList(UUID memberUuid) {
         MemberEntity member = memberRepo.findById(memberUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
         List<ScheduleEntity> scheduleList = scheduleRepo.findByMemberEntity(member);
@@ -73,6 +73,7 @@ public class ScheduleService {
     }
 
     // 스케쥴 - 출발 주소 리스트
+    @Transactional(readOnly = true)
     public ResponseSuccessDto<ScheduleAddressSearchResDto> searchStartAddressList(UUID scheduleUuid) {
         ScheduleEntity schedule = scheduleRepo.findById(scheduleUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 스케쥴입니다."));
         List<ScheduleAddressEntity> scheduleAddressList = scheduleAddressRepo.findByScheduleEntity(schedule);
@@ -91,6 +92,7 @@ public class ScheduleService {
     }
 
     // 스케쥴 정보 수정
+    @Transactional
     public ResponseSuccessDto<ScheduleUpdateResDto> updateSchedule(ScheduleUpdateReqDto scheduleUpdateReqDto) {
         ScheduleEntity schedule = scheduleRepo.findById(scheduleUpdateReqDto.getUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 스케쥴입니다."));
         schedule.updateSchedule(scheduleUpdateReqDto);
@@ -100,6 +102,7 @@ public class ScheduleService {
     }
 
     // 스케쥴 삭제
+    @Transactional
     public ResponseSuccessDto<ScheduleDeleteResDto> deleteSchedule(UUID uuid) {
         ScheduleEntity schedule = scheduleRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 스케쥴입니다."));
 

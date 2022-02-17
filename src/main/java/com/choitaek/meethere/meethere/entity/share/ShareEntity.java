@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "share")
 @NoArgsConstructor
 @AllArgsConstructor

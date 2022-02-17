@@ -15,15 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class MailService {
 
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
     private static final String FROM_ADDRESS = "YOUR_EMAIL_ADDRESS";
-
-    private final MemberRepo memberRepo;
 
     // 메일 전송
     public void mailSend(MailDto mailDto) {
@@ -37,30 +34,23 @@ public class MailService {
 
     // 인증번호 메일
     public MailDto verification(String email, String name, int code) {
-        MailDto mailDto = new MailDto();
-        mailDto.setEmail(email);
-        mailDto.setTitle(name + "님의 회원가입 인증번호 입니다");
-        mailDto.setMessage("안녕하세요. 회원가입 인증 번호는 [" + code + "] 입니다.");
-        return mailDto;
+        String title = name + "님의 회원가입 인증번호 입니다.";
+        String message = "안녕하세요. 회원가입 인증번호는 [" + code + "] 입니다.";
+        return new MailDto(email, title, message);
     }
 
     // 비밀번호 변경 메일
-    public MailDto createMailAndChangePassword(String email, String name, String tempPw) {
-        MailDto mailDto = new MailDto();
-        mailDto.setEmail(email);
-        mailDto.setTitle(name + "님의 임시 비밀번호 안내 이메일 입니다");
-        mailDto.setMessage("안녕하세요. 회원님의 임시 비밀번호는 [" + tempPw + "] 입니다");
-        updatePassword(email, tempPw);
-        return mailDto;
+    public MailDto createMailAndChangePassword(MemberEntity memberEntity) {
+        String tempPw = "qwe123!@#";
+        String title = memberEntity.getName() + "님의 임시 비밀번호 안내 메일 입니다.";
+        String message = "안녕하세요. 회원님의 임시 비밀번호는 [" + tempPw + "] 입니다";
+        updatePassword(memberEntity, tempPw);
+        return new MailDto(memberEntity.getEmail(), title, message);
     }
 
     // 비밀번호 변경
-    public void updatePassword(String email, String pw) {
-        MemberEntity memberEntity = memberRepo.findByEmail(email).orElseThrow(
-                () -> new ApiRequestException("해당 회원이 존재하지 않습니다.")
-        );
-
+    public void updatePassword(MemberEntity memberEntity, String pw) {
         String newPw = passwordEncoder.encode(pw);
-        memberEntity.setPw(newPw);
+        memberEntity.updatePw(newPw);
     }
 }

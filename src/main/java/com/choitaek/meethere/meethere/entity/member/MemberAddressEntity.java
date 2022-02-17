@@ -9,7 +9,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "member_address")
 @NoArgsConstructor
 @AllArgsConstructor
