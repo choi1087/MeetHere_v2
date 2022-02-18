@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.UUID;
 
 @Api("친구")
@@ -36,7 +37,7 @@ public class FriendController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @GetMapping("/friend/check")
     public ResponseEntity<ResponseSuccessDto<FriendCheckResDto>> checkFriend(
-            @RequestBody FriendCheckReqDto friendCheckReqDto
+            @RequestBody @Valid FriendCheckReqDto friendCheckReqDto
     ) {
         return ResponseEntity.ok(friendService.checkFriend(friendCheckReqDto));
     }
@@ -48,7 +49,7 @@ public class FriendController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @PostMapping("/friend/save")
     public ResponseEntity<ResponseSuccessDto<FriendSaveResDto>> saveFriend(
-            @RequestBody FriendSaveReqDto friendSaveReqDto
+            @RequestBody @Valid FriendSaveReqDto friendSaveReqDto
     ) {
         return ResponseEntity.ok(friendService.saveFriend(friendSaveReqDto));
     }

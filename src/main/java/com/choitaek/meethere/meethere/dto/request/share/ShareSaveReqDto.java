@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Getter
@@ -17,5 +18,6 @@ public class ShareSaveReqDto {
     private ShareObjectDto destinationAddress;
 
     @Schema(description = "출발지점 주소 정보 리스트")
+    @NotEmpty(message = "출발지점 주소 정보는 최소 1개 이상 필수입니다.")
     private List<ShareObjectDto> startAddressList;
 }

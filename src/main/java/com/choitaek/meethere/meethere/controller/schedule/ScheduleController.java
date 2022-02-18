@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.UUID;
 
 @Api("스케쥴")
@@ -35,7 +36,7 @@ public class ScheduleController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @PostMapping("/schedule/save")
     public ResponseEntity<ResponseSuccessDto<ScheduleSaveResDto>> saveSchedule(
-            @RequestBody ScheduleSaveReqDto scheduleSaveReqDto
+            @RequestBody @Valid ScheduleSaveReqDto scheduleSaveReqDto
     ) {
         return ResponseEntity.ok(scheduleService.saveSchedule(scheduleSaveReqDto));
     }
@@ -71,7 +72,7 @@ public class ScheduleController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @PutMapping("/schedule/update")
     public ResponseEntity<ResponseSuccessDto<ScheduleUpdateResDto>> updateSchedule(
-            @RequestBody ScheduleUpdateReqDto scheduleUpdateReqDto
+            @RequestBody @Valid ScheduleUpdateReqDto scheduleUpdateReqDto
     ) {
         return ResponseEntity.ok(scheduleService.updateSchedule(scheduleUpdateReqDto));
     }

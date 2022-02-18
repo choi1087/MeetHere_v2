@@ -26,6 +26,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.UUID;
 
 @Api("회원")
@@ -48,7 +49,7 @@ public class MemberController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @PostMapping("/member/save")
     public ResponseEntity<ResponseSuccessDto<MemberSaveResDto>> saveMember(
-            @RequestBody MemberSaveReqDto memberSaveReqDto
+            @RequestBody @Valid MemberSaveReqDto memberSaveReqDto
     ) {
         return ResponseEntity.ok(memberService.save(memberSaveReqDto));
     }
@@ -60,7 +61,7 @@ public class MemberController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @PostMapping("/member/verify")
     public ResponseEntity<ResponseSuccessDto<MemberVerifyResDto>> verifyMember(
-            @RequestBody MemberVerifyReqDto memberVerifyReqDto
+            @RequestBody @Valid MemberVerifyReqDto memberVerifyReqDto
     ) {
         return ResponseEntity.ok(memberService.activateMember(memberVerifyReqDto));
     }
@@ -106,7 +107,7 @@ public class MemberController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @GetMapping("/member/login")
     public ResponseEntity<ResponseSuccessDto<MemberLoginResDto>> login(
-            @Validated @RequestBody MemberLoginReqDto memberLoginReqDto,
+            @Validated @RequestBody @Valid MemberLoginReqDto memberLoginReqDto,
             BindingResult result
     ) {
         ResponseEntity errorResponse = checkBindingResultError(result);
@@ -124,7 +125,7 @@ public class MemberController {
             @ApiResponse(responseCode = "400", description = "실패", content = @Content)})
     @PutMapping("/member/update")
     public ResponseEntity<ResponseSuccessDto<MemberUpdateResDto>> updateMember(
-            @RequestBody MemberUpdateReqDto memberUpdateReqDto
+            @RequestBody @Valid MemberUpdateReqDto memberUpdateReqDto
     ) {
         return ResponseEntity.ok(memberService.updateMember(memberUpdateReqDto));
     }
