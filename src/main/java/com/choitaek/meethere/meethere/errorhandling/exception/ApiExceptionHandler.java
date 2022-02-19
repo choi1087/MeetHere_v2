@@ -1,4 +1,4 @@
-package com.choitaek.meethere.meethere.exception;
+package com.choitaek.meethere.meethere.errorhandling.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

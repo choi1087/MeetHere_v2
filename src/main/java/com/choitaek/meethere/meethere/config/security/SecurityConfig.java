@@ -1,4 +1,4 @@
-package com.choitaek.meethere.meethere.config;
+package com.choitaek.meethere.meethere.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

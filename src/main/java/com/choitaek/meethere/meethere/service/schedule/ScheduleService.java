@@ -10,7 +10,7 @@ import com.choitaek.meethere.meethere.dto.schedule.ScheduleObjectResDto;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import com.choitaek.meethere.meethere.entity.schedule.ScheduleAddressEntity;
 import com.choitaek.meethere.meethere.entity.schedule.ScheduleEntity;
-import com.choitaek.meethere.meethere.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.repository.jpa.schedule.ScheduleAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.schedule.ScheduleRepo;

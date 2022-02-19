@@ -10,7 +10,7 @@ import com.choitaek.meethere.meethere.dto.request.member.MemberVerifyReqDto;
 import com.choitaek.meethere.meethere.dto.response.member.*;
 import com.choitaek.meethere.meethere.entity.member.MemberAddressEntity;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
-import com.choitaek.meethere.meethere.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.service.mail.MailService;

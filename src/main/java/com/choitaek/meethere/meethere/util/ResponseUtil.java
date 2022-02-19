@@ -1,5 +1,7 @@
 package com.choitaek.meethere.meethere.util;
 
+import com.choitaek.meethere.meethere.dto.common.response.ErrorContentDto;
+import com.choitaek.meethere.meethere.dto.common.response.ResponseErrorDto;
 import com.choitaek.meethere.meethere.dto.common.response.ResponseSuccessDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -20,5 +22,20 @@ public class ResponseUtil<T> {
                 .data(data)
                 .build();
         return res;
+    }
+
+    public ResponseErrorDto<ErrorContentDto> buildErrorResponse(HttpStatus httpStatus, String message, String path) {
+        ErrorContentDto errorContentDto = ErrorContentDto.builder()
+                .message(message)
+                .build();
+
+        return ResponseErrorDto
+                .<ErrorContentDto>builder()
+                .timeStamp(ZonedDateTime.now(TimeZone.getTimeZone("UTC").toZoneId()))
+                .code(httpStatus.value())
+                .status(httpStatus.name())
+                .path(path)
+                .error(errorContentDto)
+                .build();
     }
 }

@@ -6,7 +6,7 @@ import com.choitaek.meethere.meethere.dto.request.member.MemberSaveReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberUpdateReqDto;
 import com.choitaek.meethere.meethere.dto.request.member.MemberVerifyReqDto;
 import com.choitaek.meethere.meethere.dto.response.member.*;
-import com.choitaek.meethere.meethere.exception.ErrorResponse;
+import com.choitaek.meethere.meethere.errorhandling.exception.ErrorResponse;
 import com.choitaek.meethere.meethere.service.friend.FriendService;
 import com.choitaek.meethere.meethere.service.mail.MailService;
 import com.choitaek.meethere.meethere.service.member.MemberService;

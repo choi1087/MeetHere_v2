@@ -10,7 +10,7 @@ import com.choitaek.meethere.meethere.dto.response.friend.FriendSaveResDto;
 import com.choitaek.meethere.meethere.dto.response.friend.FriendSearchResDto;
 import com.choitaek.meethere.meethere.entity.friend.FriendEntity;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
-import com.choitaek.meethere.meethere.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.friend.FriendRepo;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;

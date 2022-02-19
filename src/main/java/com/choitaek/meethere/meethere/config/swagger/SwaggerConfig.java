@@ -1,4 +1,4 @@
-package com.choitaek.meethere.meethere.config;
+package com.choitaek.meethere.meethere.config.swagger;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

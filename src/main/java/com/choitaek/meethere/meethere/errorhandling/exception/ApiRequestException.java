@@ -1,4 +1,4 @@
-package com.choitaek.meethere.meethere.exception;
+package com.choitaek.meethere.meethere.errorhandling.exception;
 
 public class ApiRequestException extends IllegalArgumentException {
     public ApiRequestException(String message) {

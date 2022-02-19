@@ -8,7 +8,7 @@ import com.choitaek.meethere.meethere.dto.response.share.ShareSearchStartResDto;
 import com.choitaek.meethere.meethere.dto.share.ShareObjectDto;
 import com.choitaek.meethere.meethere.entity.share.ShareAddressEntity;
 import com.choitaek.meethere.meethere.entity.share.ShareEntity;
-import com.choitaek.meethere.meethere.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
 import com.choitaek.meethere.meethere.repository.jpa.share.ShareAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.share.ShareRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
