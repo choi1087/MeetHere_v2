@@ -10,7 +10,8 @@ import com.choitaek.meethere.meethere.dto.response.friend.FriendSaveResDto;
 import com.choitaek.meethere.meethere.dto.response.friend.FriendSearchResDto;
 import com.choitaek.meethere.meethere.entity.friend.FriendEntity;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
-import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.DuplicateErrorException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.EntityIsNullException;
 import com.choitaek.meethere.meethere.repository.jpa.friend.FriendRepo;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
@@ -37,9 +38,9 @@ public class FriendService {
     @Transactional(readOnly = true)
     public ResponseSuccessDto<FriendCheckResDto> checkFriend(FriendCheckReqDto friendCheckReqDto) {
         MemberEntity member = memberRepo.findByEmail(friendCheckReqDto.getEmail())
-                .orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityIsNullException("해당 회원이 존재하지 않습니다."));
         if (!(member.getName().equals(friendCheckReqDto.getName()) && member.getPhone().equals(friendCheckReqDto.getPhone()))) {
-            throw new ApiRequestException("해당 회원이 존재하지 않습니다.");
+            throw new EntityIsNullException("해당 회원이 존재하지 않습니다.");
         }
         FriendCheckResDto friendCheckResDto = new FriendCheckResDto("친구 조회 성공", member.getUuid());
         ResponseSuccessDto<FriendCheckResDto> res = responseUtil.successResponse(friendCheckResDto);
@@ -49,17 +50,19 @@ public class FriendService {
     // 친구 추가
     @Transactional
     public ResponseSuccessDto<FriendSaveResDto> saveFriend(FriendSaveReqDto friendSaveReqDto) {
-        MemberEntity member = memberRepo.findById(friendSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
-        MemberEntity friendMember = memberRepo.findById(friendSaveReqDto.getMemberUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
+        MemberEntity member = memberRepo.findById(friendSaveReqDto.getMemberUuid())
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 회원입니다."));
+        MemberEntity friendMember = memberRepo.findById(friendSaveReqDto.getMemberUuid())
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 회원입니다."));
         if (friendMember == null) {
-            throw new ApiRequestException("해당 회원이 존재하지 않습니다.");
+            throw new EntityIsNullException("해당 회원이 존재하지 않습니다.");
         }
 
         // 중복 친구추가 확인
         List<FriendEntity> friendList = friendRepo.findByMemberEntity(member);
         for (FriendEntity friend : friendList) {
             if (friend.getEmail().equals(friendMember.getEmail())) {
-                throw new ApiRequestException("이미 존재하는 회원입니다.");
+                throw new DuplicateErrorException("이미 존재하는 회원입니다.");
             }
         }
 
@@ -75,7 +78,8 @@ public class FriendService {
     // 친구 목록
     @Transactional(readOnly = true)
     public ResponseSuccessDto<FriendSearchResDto> searchFriend(UUID memberUuid) {
-        MemberEntity member = memberRepo.findById(memberUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
+        MemberEntity member = memberRepo.findById(memberUuid)
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 회원입니다."));
         List<FriendEntity> friendList = friendRepo.findByMemberEntity(member);
         FriendSearchResDto friendSearchResDto = new FriendSearchResDto(
                 "친구 목록 조회 성공", changeEntityToObject(friendList)
@@ -87,7 +91,8 @@ public class FriendService {
     // 친구 삭제
     @Transactional
     public ResponseSuccessDto<FriendDeleteResDto> deleteFriend(UUID friendUuid) {
-        FriendEntity friend = friendRepo.findById(friendUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 친구입니다."));
+        FriendEntity friend = friendRepo.findById(friendUuid)
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 친구입니다."));
         friendRepo.delete(friend);
         FriendDeleteResDto friendDeleteResDto = new FriendDeleteResDto("친구 삭제 성공");
         ResponseSuccessDto<FriendDeleteResDto> res = responseUtil.successResponse(friendDeleteResDto);

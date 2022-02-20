@@ -1,8 +1,9 @@
 package com.choitaek.meethere.meethere.errorhandling.resolver;
 
 import com.choitaek.meethere.meethere.dto.common.response.ResponseErrorDto;
-import com.choitaek.meethere.meethere.errorhandling.exception.ApiException;
-import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.DuplicateErrorException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.LoginErrorException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.RegisterErrorException;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.BindException;
 
 @Slf4j
 @RestControllerAdvice
@@ -29,5 +29,23 @@ public class ServiceExceptionResolver {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public ResponseErrorDto<?> handle(MethodArgumentNotValidException e, HttpServletRequest request) {
         return responseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, e.getFieldError().getDefaultMessage(), request.getRequestURI());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = LoginErrorException.class)
+    public ResponseErrorDto<?> handle(LoginErrorException e, HttpServletRequest request) {
+        return responseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage(), request.getRequestURI());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = DuplicateErrorException.class)
+    public ResponseErrorDto<?> handle(DuplicateErrorException e, HttpServletRequest request) {
+        return responseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage(), request.getRequestURI());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = RegisterErrorException.class)
+    public ResponseErrorDto<?> handle(RegisterErrorException e, HttpServletRequest request) {
+        return responseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage(), request.getRequestURI());
     }
 }

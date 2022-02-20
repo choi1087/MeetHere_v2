@@ -10,7 +10,7 @@ import com.choitaek.meethere.meethere.dto.request.member.MemberVerifyReqDto;
 import com.choitaek.meethere.meethere.dto.response.member.*;
 import com.choitaek.meethere.meethere.entity.member.MemberAddressEntity;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
-import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.*;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.member.MemberRepo;
 import com.choitaek.meethere.meethere.service.mail.MailService;
@@ -48,7 +48,7 @@ public class MemberService {
 
         // 중복 회원 검증
         if (!validateDuplicateMember(memberSaveReqDto)) {
-            return responseUtil.successResponse(new MemberSaveResDto("회원가입 실패"));
+            throw new RegisterErrorException("회원가입 실패");
         }
 
         // 회원 정보
@@ -75,24 +75,24 @@ public class MemberService {
     public ResponseSuccessDto<MemberVerifyResDto> activateMember(MemberVerifyReqDto memberVerifyReqDto) {
         ResponseSuccessDto<MemberVerifyResDto> res;
         MemberEntity member = memberRepo.findByEmail(memberVerifyReqDto.getEmail())
-                .orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
+                .orElseThrow(() -> new EntityIsNullException("해당 회원이 존재하지 않습니다."));
 
-        if (member.getAuthNum() == memberVerifyReqDto.getAuthNum()) {
-            member.updateIsActive(true);
-            res = responseUtil.successResponse(new MemberVerifyResDto("인증 성공"));
-            return res;
+        if (member.getAuthNum() != memberVerifyReqDto.getAuthNum()) {
+            throw new VerifyErrorException("인증번호가 일치하지 않습니다.");
         }
-        res = responseUtil.successResponse(new MemberVerifyResDto("인증 실패"));
+        member.updateIsActive(true);
+        res = responseUtil.successResponse(new MemberVerifyResDto("인증 성공"));
         return res;
     }
 
     // 로그인
     @Transactional
     public ResponseSuccessDto<MemberLoginResDto> login(MemberLoginReqDto memberLoginReqDto) {
-        MemberEntity member = memberRepo.findByEmail(memberLoginReqDto.getEmail()).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다."));
+        MemberEntity member = memberRepo.findByEmail(memberLoginReqDto.getEmail())
+                .orElseThrow(() -> new LoginErrorException("해당 회원이 존재하지 않습니다."));
 
         if (!passwordEncoder.matches(memberLoginReqDto.getPw(), member.getPw())) {
-            return responseUtil.successResponse(new ApiRequestException("로그인 실패"));
+            throw new LoginErrorException("잘못된 비밀번호 입니다.");
         }
 
         MemberLoginResDto memberLoginResDto = new MemberLoginResDto("로그인 성공");
@@ -112,7 +112,8 @@ public class MemberService {
     // 회원 이메일 찾기 (이름, 휴대전화)
     @Transactional(readOnly = true)
     public ResponseSuccessDto<MemberFindEmailResDto> findMemberEmail(String name, String phone) {
-        MemberEntity member = memberRepo.findByNameAndPhone(name, phone).orElseThrow(() -> new ApiRequestException("해당 회원이 존재하지 않습니다"));
+        MemberEntity member = memberRepo.findByNameAndPhone(name, phone)
+                .orElseThrow(() -> new EntityIsNullException("해당 회원이 존재하지 않습니다"));
         MemberFindEmailResDto memberFindEmailResDto = new MemberFindEmailResDto("회원 조회 성공", member.getEmail());
         ResponseSuccessDto<MemberFindEmailResDto> res = responseUtil.successResponse(memberFindEmailResDto);
         return res;
@@ -122,7 +123,7 @@ public class MemberService {
     @Transactional
     public ResponseSuccessDto<MemberFindPwResDto> findMemberPw(String email, String name, String phone) {
         MemberEntity findMember = memberRepo.findByEmailAndNameAndPhone(email, name, phone).orElseThrow(
-                () -> new ApiRequestException("해당 회원이 존재하지 않습니다.")
+                () -> new EntityIsNullException("해당 회원이 존재하지 않습니다.")
         );
 
         MailDto mailDto = mailService.createMailAndChangePassword(findMember);
@@ -139,10 +140,11 @@ public class MemberService {
     @Transactional
     public ResponseSuccessDto<MemberUpdateResDto> updateMember(MemberUpdateReqDto memberUpdateReqDto) {
         if (!memberUpdateReqDto.getPw().equals(memberUpdateReqDto.getCheckedPw())) {
-            throw new ApiRequestException("비밀번호가 일치하지 않습니다.");
+            throw new VerifyErrorException("비밀번호가 일치하지 않습니다.");
         }
 
-        MemberEntity member = memberRepo.findById(memberUpdateReqDto.getUuid()).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
+        MemberEntity member = memberRepo.findById(memberUpdateReqDto.getUuid())
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 회원입니다."));
         member.updateMember(memberUpdateReqDto, passwordEncoder.encode(memberUpdateReqDto.getPw()));
 
         MemberUpdateResDto memberUpdateResDto = new MemberUpdateResDto("수정 완료");
@@ -153,7 +155,8 @@ public class MemberService {
     // 회원 탈퇴
     @Transactional
     public ResponseSuccessDto<MemberDeleteResDto> deleteMember(UUID uuid) {
-        MemberEntity member = memberRepo.findById(uuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 회원입니다."));
+        MemberEntity member = memberRepo.findById(uuid)
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 회원입니다."));
         MemberAddressEntity memberAddress = memberAddressRepo.findOneByMemberEntity(member);
         memberAddressRepo.delete(memberAddress);
         memberRepo.delete(member);
@@ -177,14 +180,14 @@ public class MemberService {
         if (!member.getIsActive()) {
             memberRepo.delete(member);
         } else {
-            return false;
+            throw new DuplicateErrorException("이미 존재하는 회원입니다.");
         }
 
         // 중복 이름, 번호
         List<MemberEntity> findMember = memberRepo.findByName(memberSaveReqDto.getName());
         for (MemberEntity memberEntity : findMember) {
             if (memberEntity.getPhone().equals(memberSaveReqDto.getPhone())) {
-                return false;
+                throw new DuplicateErrorException("이미 존재하는 회원입니다.");
             }
         }
         return true;

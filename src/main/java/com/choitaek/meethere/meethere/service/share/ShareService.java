@@ -8,7 +8,8 @@ import com.choitaek.meethere.meethere.dto.response.share.ShareSearchStartResDto;
 import com.choitaek.meethere.meethere.dto.share.ShareObjectDto;
 import com.choitaek.meethere.meethere.entity.share.ShareAddressEntity;
 import com.choitaek.meethere.meethere.entity.share.ShareEntity;
-import com.choitaek.meethere.meethere.errorhandling.exception.ApiRequestException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.EntityIsNullException;
+import com.choitaek.meethere.meethere.errorhandling.exception.service.ResourceNotFoundException;
 import com.choitaek.meethere.meethere.repository.jpa.share.ShareAddressRepo;
 import com.choitaek.meethere.meethere.repository.jpa.share.ShareRepo;
 import com.choitaek.meethere.meethere.util.ResponseUtil;
@@ -55,7 +56,8 @@ public class ShareService {
     // 공유코드에 저장된 도착주소
     @Transactional(readOnly = true)
     public ResponseSuccessDto<ShareSearchDestinationResDto> searchShareDestination(String code) {
-        ShareEntity share = shareRepo.findByCode(code).orElseThrow(() -> new ApiRequestException("잘못된 공유코드 입니다."));
+        ShareEntity share = shareRepo.findByCode(code)
+                .orElseThrow(() -> new ResourceNotFoundException("잘못된 공유코드 입니다."));
         ShareSearchDestinationResDto shareSearchDestinationResDto = new ShareSearchDestinationResDto(
                 share.getUuid(), share.getUserName(), share.getAddressName(), share.getPlaceName(), share.getRoadName(),
                 share.getLat(), share.getLon()
@@ -67,7 +69,8 @@ public class ShareService {
     // 공유코드에 저장된 출발주소 리스트
     @Transactional(readOnly = true)
     public ResponseSuccessDto<List<ShareSearchStartResDto>> searchShareStartList(UUID shareUuid) {
-        ShareEntity share = shareRepo.findById(shareUuid).orElseThrow(() -> new ApiRequestException("존재하지 않는 공유입니다."));
+        ShareEntity share = shareRepo.findById(shareUuid)
+                .orElseThrow(() -> new EntityIsNullException("존재하지 않는 공유입니다."));
         List<ShareAddressEntity> startAddressList = shareAddressRepo.findByShareEntity(share);
         List<ShareSearchStartResDto> shareSearchStartResDtoList = startAddressList.stream().map(
                 s -> new ShareSearchStartResDto(
