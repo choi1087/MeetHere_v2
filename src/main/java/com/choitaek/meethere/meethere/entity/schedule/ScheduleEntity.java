@@ -1,5 +1,7 @@
 package com.choitaek.meethere.meethere.entity.schedule;
 
+import com.choitaek.meethere.meethere.dto.request.schedule.ScheduleSaveReqDto;
+import com.choitaek.meethere.meethere.dto.request.schedule.ScheduleUpdateReqDto;
 import com.choitaek.meethere.meethere.entity.member.MemberEntity;
 import com.choitaek.meethere.meethere.entity.TimeEntity;
 import lombok.*;
@@ -10,7 +12,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "schedule")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,11 +26,11 @@ public class ScheduleEntity extends TimeEntity {
     @Column(name = "name", columnDefinition = "varchar(20)")
     private String name;
 
-    @Column(name = "destination", columnDefinition = "varchar(50)")
-    private String destination;
-
     @Column(name = "address_name", columnDefinition = "varchar(50)")
     private String addressName;
+
+    @Column(name = "place_name", columnDefinition = "varchar(50)")
+    private String placeName;
 
     @Column(name = "road_name", columnDefinition = "varchar(50)")
     private String roadName;
@@ -46,4 +47,20 @@ public class ScheduleEntity extends TimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_uuid", nullable = false)
     MemberEntity memberEntity;
+
+    public void createSchedule(ScheduleSaveReqDto scheduleSaveReqDto, MemberEntity memberEntity) {
+        this.name = scheduleSaveReqDto.getName();
+        this.addressName = scheduleSaveReqDto.getDestinationAddress().getAddressName();
+        this.placeName = scheduleSaveReqDto.getDestinationAddress().getPlaceName();
+        this.roadName = scheduleSaveReqDto.getDestinationAddress().getRoadName();
+        this.date = scheduleSaveReqDto.getDate();
+        this.lat = scheduleSaveReqDto.getDestinationAddress().getLat();
+        this.lon = scheduleSaveReqDto.getDestinationAddress().getLon();
+        this.memberEntity = memberEntity;
+    }
+
+    public void updateSchedule(ScheduleUpdateReqDto scheduleUpdateReqDto) {
+        this.name = scheduleUpdateReqDto.getName();
+        this.date = scheduleUpdateReqDto.getDate();
+    }
 }

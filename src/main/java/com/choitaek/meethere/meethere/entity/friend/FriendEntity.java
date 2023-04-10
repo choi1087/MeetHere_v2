@@ -10,7 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "friend")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,4 +33,11 @@ public class FriendEntity extends TimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_uuid", nullable = false)
     private MemberEntity memberEntity;
+
+    public void createFriend(MemberEntity friend, MemberEntity member) {
+        this.name = friend.getName();
+        this.email = friend.getEmail();
+        this.phone = friend.getPhone();
+        this.memberEntity = member;
+    }
 }

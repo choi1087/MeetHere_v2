@@ -8,7 +8,6 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "address")
 @NoArgsConstructor
 @AllArgsConstructor
